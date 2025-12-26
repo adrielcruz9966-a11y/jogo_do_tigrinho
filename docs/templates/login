@@ -1,0 +1,16 @@
+from flask import request, flash
+from forms import LoginForm
+from flask_login import login_user
+
+@app.route("/login", methods=["GET", "POST"])
+def login():
+    form = LoginForm()
+    if form.validate_on_submit():
+        user = User.query.filter_by(username=form.username.data).first()
+        if user and bcrypt.check_password_hash(user.password, form.password.data):
+            login_user(user, remember=form.remember.data)
+            flash("Login bem-sucedido!", "success")
+            return redirect(url_for("home"))
+        else:
+            flash("Usuário ou senha incorretos", "danger")
+    return render_template("login.html", form=form)
