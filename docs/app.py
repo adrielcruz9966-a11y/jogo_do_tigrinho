@@ -1,29 +1,27 @@
-from flask import Flask, render_template, redirect, url_for, flash, request, jsonify
+from flask import Flask, render_template, redirect, url_for, jsonify
 from flask_sqlalchemy import SQLAlchemy
 from flask_bcrypt import Bcrypt
-from flask_login import LoginManager, UserMixin, login_user, login_required, logout_user, current_user
-import random
-import requests
+from flask_login import LoginManager, UserMixin, login_required, logout_user, current_user
 from flask_migrate import Migrate
 import os
 
 # =====================
-# Inicialização do Flask
+# APP
 # =====================
 app = Flask(__name__)
 
 # =====================
-# Configurações
+# CONFIG
 # =====================
-app.config['SECRET_KEY'] = os.environ.get("SECRET_KEY", "password")
-app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get(
+app.config["SECRET_KEY"] = os.environ.get("SECRET_KEY", "password")
+app.config["SQLALCHEMY_DATABASE_URI"] = os.environ.get(
     "DATABASE_URL",
-    "sqlite:///local.db"  # fallback local
+    "sqlite:///local.db"
 )
-app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 
 # =====================
-# Extensões
+# EXTENSIONS
 # =====================
 db = SQLAlchemy(app)
 bcrypt = Bcrypt(app)
@@ -32,7 +30,7 @@ login_manager.login_view = "login"
 migrate = Migrate(app, db)
 
 # =====================
-# Models
+# MODELS
 # =====================
 class User(db.Model, UserMixin):
     id = db.Column(db.Integer, primary_key=True)
@@ -45,26 +43,25 @@ class GameResult(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     balance = db.Column(db.Integer, nullable=False)
     timestamp = db.Column(db.DateTime, server_default=db.func.now())
-    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    user_id = db.Column(db.Integer, db.ForeignKey("user.id"), nullable=False)
 
 # =====================
-# Login Loader
+# LOGIN
 # =====================
 @login_manager.user_loader
 def load_user(user_id):
     return User.query.get(int(user_id))
 
 # =====================
-# ROTAS
+# ROUTES
 # =====================
-
 @app.route("/")
 def home():
-    return "Servidor online 🚀"
+    return render_template("index.html")
 
 @app.route("/login")
 def login():
-    return "Página de login (em construção)"
+    return "Login em construção"
 
 @app.route("/logout")
 @login_required
@@ -79,24 +76,14 @@ def chart_data():
         user_id=current_user.id
     ).order_by(GameResult.timestamp).all()
 
-    x = list(range(1, len(results) + 1))
-    y = [r.balance for r in results]
-
-    return jsonify({"x": x, "y": y})
+    return jsonify({
+        "x": list(range(len(results))),
+        "y": [r.balance for r in results]
+    })
 
 # =====================
 # RUN
 # =====================
 if __name__ == "__main__":
-    port = int(os.environ.get("PORT", 5000))
+    port = int(os.environ.get("PORT", 10000))
     app.run(host="0.0.0.0", port=port)
-from flask import Flask, render_template
-
-app = Flask(__name__)
-
-@app.route("/")
-def home():
-    return render_template("index.html")
-
-if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=10000)
