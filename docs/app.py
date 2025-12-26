@@ -5,67 +5,88 @@ from flask_login import LoginManager, UserMixin, login_user, login_required, log
 import random
 import requests
 from flask_migrate import Migrate
+import os
 
-# Depois de inicializar o app e o db
-
-
+# =====================
 # Inicialização do Flask
+# =====================
 app = Flask(__name__)
 
-# Configurações básicas
-app.config['SECRET_KEY'] = 'password'
-app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://usuario:senha@localhost/tigre'
+# =====================
+# Configurações
+# =====================
+app.config['SECRET_KEY'] = os.environ.get("SECRET_KEY", "password")
+app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get(
+    "DATABASE_URL",
+    "sqlite:///local.db"  # fallback local
+)
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
-# Inicialização de extensões
+# =====================
+# Extensões
+# =====================
 db = SQLAlchemy(app)
 bcrypt = Bcrypt(app)
 login_manager = LoginManager(app)
-login_manager.login_view = 'login'
-login_manager.login_message_category = 'info'
+login_manager.login_view = "login"
 migrate = Migrate(app, db)
 
-# Definição do modelo User
+# =====================
+# Models
+# =====================
 class User(db.Model, UserMixin):
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(20), unique=True, nullable=False)
     email = db.Column(db.String(120), unique=True, nullable=False)
     password = db.Column(db.String(60), nullable=False)
     balance = db.Column(db.Integer, default=1000)
-    results = db.relationship('GameResult', backref='user', lazy=True)  # Relacionamento com GameResult
 
-    def __repr__(self):
-        return f"User('{self.username}', '{self.email}', '{self.balance}')"
-
-# Novo modelo GameResult para armazenar os resultados das apostas
 class GameResult(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     balance = db.Column(db.Integer, nullable=False)
-    timestamp = db.Column(db.DateTime, nullable=False, default=db.func.now())
+    timestamp = db.Column(db.DateTime, server_default=db.func.now())
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
 
-    def __repr__(self):
-        return f"GameResult('{self.balance}', '{self.timestamp}', User ID: {self.user_id})"
-
-# Carregar usuário com Flask-Login
+# =====================
+# Login Loader
+# =====================
 @login_manager.user_loader
 def load_user(user_id):
     return User.query.get(int(user_id))
 
-@app.route('/chart-data')
+# =====================
+# ROTAS
+# =====================
+
+@app.route("/")
+def home():
+    return "Servidor online 🚀"
+
+@app.route("/login")
+def login():
+    return "Página de login (em construção)"
+
+@app.route("/logout")
+@login_required
+def logout():
+    logout_user()
+    return redirect(url_for("home"))
+
+@app.route("/chart-data")
 @login_required
 def chart_data():
-    results = GameResult.query.filter_by(user_id=current_user.id).order_by(GameResult.timestamp).all()
+    results = GameResult.query.filter_by(
+        user_id=current_user.id
+    ).order_by(GameResult.timestamp).all()
 
-    # Gerando os dados para o gráfico
     x = list(range(1, len(results) + 1))
-    y = [result.balance for result in results]
+    y = [r.balance for r in results]
 
-    # Retornando os dados como JSON
-    return jsonify({'x': x, 'y': y})
+    return jsonify({"x": x, "y": y})
 
-# Importações locais após a inicialização para evitar problemas de importação circular
-from docs.forms import LoginForm, RegistrationForm
-
-if __name__ == '__main__':
-    app.run(debug=True)
+# =====================
+# RUN
+# =====================
+if __name__ == "__main__":
+    port = int(os.environ.get("PORT", 5000))
+    app.run(host="0.0.0.0", port=port)
