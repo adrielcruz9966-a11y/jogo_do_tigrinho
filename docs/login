@@ -1,20 +1,20 @@
-from flask import render_template, request, redirect, url_for
+from flask import render_template, request, redirect, url_for, flash
 from flask_login import login_user
-from werkzeug.security import check_password_hash
-from models import User
+from docs.forms import LoginForm  # seu forms.py
+from docs.models import User
 from app import app, bcrypt
 
 @app.route("/login", methods=["GET", "POST"])
 def login():
-    if request.method == "POST":
-        username = request.form["username"]
-        password = request.form["password"]
-        
-        user = User.query.filter_by(username=username).first()
-        if user and bcrypt.check_password_hash(user.password, password):
-            login_user(user)
-            return redirect(url_for("home"))  # Página inicial após login bem-sucedido
-        
-        return "Login inválido", 401
+    form = LoginForm()
+    if form.validate_on_submit():
+        user = User.query.filter_by(username=form.username.data).first()
+        if user and bcrypt.check_password_hash(user.password, form.password.data):
+            login_user(user, remember=form.remember.data)
+            flash("Login bem-sucedido!", "success")
+            return redirect(url_for("home"))
+        else:
+            flash("Usuário ou senha incorretos", "danger")
+    
+    return render_template("login.html", form=form)
 
-    return render_template("login.html")
