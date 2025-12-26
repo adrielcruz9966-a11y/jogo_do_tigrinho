@@ -7,15 +7,32 @@
 </head>
 <body>
     <h1>Login</h1>
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        <div>
+          {% for category, message in messages %}
+            <p style="color: {% if category == 'danger' %}red{% else %}green{% endif %};">
+                {{ message }}
+            </p>
+          {% endfor %}
+        </div>
+      {% endif %}
+    {% endwith %}
+
     <form method="POST">
+        {{ form.hidden_tag() }}
         <label for="username">Nome de usuário:</label>
-        <input type="text" name="username" id="username" required>
+        {{ form.username(id="username") }}
         <br>
-        
+
         <label for="password">Senha:</label>
-        <input type="password" name="password" id="password" required>
+        {{ form.password(id="password") }}
         <br>
-        
+
+        {{ form.remember() }} <label for="remember">Lembrar-me</label>
+        <br>
+
         <button type="submit">Entrar</button>
     </form>
 </body>
