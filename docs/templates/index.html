@@ -6,6 +6,22 @@
 </head>
 <body>
     <h1>🔥 Jogo do Tigrinho</h1>
-    <p>Servidor rodando no Render 🚀</p>
+    <p>Servidor rodando no Render com Flask 🚀</p>
+
+    <h3>Teste do gráfico</h3>
+    <button onclick="loadData()">Carregar dados</button>
+
+    <pre id="output"></pre>
+
+    <script>
+        function loadData() {
+            fetch("/chart-data")
+                .then(res => res.json())
+                .then(data => {
+                    document.getElementById("output").innerText =
+                        JSON.stringify(data, null, 2);
+                });
+        }
+    </script>
 </body>
 </html>
