@@ -2,29 +2,10 @@
 <html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Tiger Game</title>
-
-    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <title>Jogo do Tigrinho</title>
 </head>
 <body>
-    <header>
-        <h1>Welcome to Tiger Game</h1>
-
-        {% if current_user.is_authenticated %}
-            <p>Hi, {{ current_user.username }}!</p> 
-            <a href="{{ url_for('logout') }}">Logout</a>
-        {% else %}
-            <a href="{{ url_for('login') }}">Login</a>
-        {% endif %}
-    </header>
-
-    <main>
-        <p>This is a simulator of the Tiger game to show how risky it is to bet.</p>
-    </main>
-
-    <footer>
-        <p>&copy; 2024 Tiger Game Simulator.</p>
-    </footer>
+    <h1>🔥 Jogo do Tigrinho</h1>
+    <p>Servidor rodando no Render 🚀</p>
 </body>
 </html>
