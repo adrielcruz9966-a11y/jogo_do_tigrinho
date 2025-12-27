@@ -5,19 +5,25 @@ import os
 
 app = Flask(__name__)
 
-# Config
+# =====================
+# Configurações
+# =====================
 app.config["SECRET_KEY"] = os.environ.get("SECRET_KEY", "password")
 app.config["SQLALCHEMY_DATABASE_URI"] = os.environ.get(
     "DATABASE_URL", "sqlite:///local.db"
 )
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 
+# =====================
 # Extensões
+# =====================
 db = SQLAlchemy(app)
 login_manager = LoginManager(app)
 login_manager.login_view = "login"
 
+# =====================
 # Models
+# =====================
 class User(db.Model, UserMixin):
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(20))
@@ -31,12 +37,16 @@ class GameResult(db.Model):
 def load_user(user_id):
     return User.query.get(int(user_id))
 
-# ROTAS
+# =====================
+# Rotas
+# =====================
 @app.route("/")
 def home():
     return render_template("index.html")
 
 @app.route("/chart-data")
-@login_required
 def chart_data():
-    return jsonify({"x": [1,2,3], "y": [100,90,80]})
+    return jsonify({
+        "x": [1, 2, 3, 4],
+        "y": [100, 80, 60, 40]
+    })
